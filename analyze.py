@@ -36,13 +36,15 @@ print(f'Total number of unique boot.dev leaders: {len(unique_leaders)}')
 
 with_github = []
 for leader in unique_leaders:
+    full_name = leader
     first_name = unique_leaders[leader]['FirstName'] 
-    if first_name is None:
-        first_name = ''
     last_name = unique_leaders[leader]['LastName'] 
-    if last_name is None:
-        last_name = ''
-    full_name = first_name + last_name
+    if first_name is None and last_name is not None:
+        full_name = last_name
+    elif last_name is None and first_name is not None:
+        full_name = first_name
+    elif first_name is not None and last_name is not None:
+        full_name = first_name + ' ' + last_name
 
     github = unique_leaders[leader]['GithubHandle']
     if github != None:
@@ -115,7 +117,10 @@ for n in range(7, 0, -1):
         if filter_func(user):
             filtered_users.append(user)
     if len(filtered_users) > 0:
-        print(f'There are {len(filtered_users)} users, who have completed {describe_progress(n)}')
+        num_users = f'are {len(filtered_users)} users, who have'
+        if len(filtered_users) == 1:
+            num_users = 'is 1 user, who has'
+        print(f'There {num_users} completed {describe_progress(n)}')
         for user in filtered_users:
             name = user['name']
             github = 'https://github.com/' + user['github']
