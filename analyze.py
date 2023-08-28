@@ -1,5 +1,6 @@
 import urllib.request
 import json
+from time import sleep
 
 base_url = 'https://api.boot.dev/v1/'
 def get_leaders_url(type):
@@ -60,6 +61,7 @@ def get_courses(user_handle):
 
 for user in with_github:
     handle = user['handle']
+    sleep(2)
     with urllib.request.urlopen(get_courses(handle)) as response:
         api_data_raw = response.read()
         courses = json.loads(api_data_raw)
@@ -76,7 +78,7 @@ for user in with_github:
                 else:
                     print('Wrong course title')
         user['projects'] = relevant_courses
-        print(f'User {handle} checked')
+        print(f'User {handle} checked: {relevant_courses} relevant courses completed')
 
 print('Waiting for API response. Press CTRL-C if it takes too long.')
 while wait_more():
