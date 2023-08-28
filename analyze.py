@@ -78,12 +78,11 @@ for user in with_github:
                 else:
                     print('Wrong course title')
         user['projects'] = relevant_courses
-        print(f'User {handle} checked: {relevant_courses} relevant courses completed')
+        print(f'User checked: {handle}')
 
 print('Waiting for API response. Press CTRL-C if it takes too long.')
 while wait_more():
     pass
-
 
 def create_filter(num_of_proj):
     def users_by_projects(user):
@@ -111,10 +110,13 @@ def describe_progress(projects):
 
 for n in range(7, 0, -1):
     filter_func = create_filter(n)
-    users = filter(filter_func, with_github)
-    if len(users) > 0:
-        print(f'There are {len(users)} users, who have completed {describe_progress(n)}')
-        for user in users:
+    filtered_users = []
+    for user in with_github:
+        if filter_func(user):
+            filtered_users.append(user)
+    if len(filtered_users) > 0:
+        print(f'There are {len(filtered_users)} users, who have completed {describe_progress(n)}')
+        for user in filtered_users:
             name = user['name']
             github = 'https://github.com/' + user['github']
             print(f'User: {name}    GitHub: {github}')
