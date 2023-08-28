@@ -2,18 +2,18 @@ import urllib.request
 import json
 
 base_url = 'https://api.boot.dev/v1/'
-def get_leaders(type):
+def get_leaders_url(type):
     if type == 'karma' or type == 'xp':
         return f'{base_url}leaderboard_{type}/alltime?limit=16'
     raise Exception('Wrong leaderboard type')
 
 karma_leaders = None
-with urllib.request.urlopen(get_leaders('karma')) as response:
+with urllib.request.urlopen(get_leaders_url('karma')) as response:
     api_data_raw = response.read()
     karma_leaders = json.loads(api_data_raw)
 
 xp_leaders = None
-with urllib.request.urlopen(get_leaders('xp')) as response:
+with urllib.request.urlopen(get_leaders_url('xp')) as response:
     api_data_raw = response.read()
     xp_leaders = json.loads(api_data_raw)
 
@@ -35,14 +35,23 @@ print(f'Total number of unique boot.dev leaders: {len(unique_leaders)}')
 
 with_github = []
 for leader in unique_leaders:
+    first_name = unique_leaders[leader]['FirstName'] 
+    if first_name is None:
+        first_name = ''
+    last_name = unique_leaders[leader]['LastName'] 
+    if last_name is None:
+        last_name = ''
+    full_name = first_name + last_name
+
     github = unique_leaders[leader]['GithubHandle']
     if github != None:
-        with_github.append({'handle': leader, 'github': github, 'projects': 8})
+        with_github.append({'name': full_name, 'handle': leader, 'github': github, 'projects': -1})
+
 print(f'Total number of unique boot.dev leaders with public github accounts: {len(with_github)}')
 
 def wait_more():
     for i in range(len(with_github)):
-        if with_github[i]['projects'] == 8:
+        if with_github[i]['projects'] == -1:
             return True
     return False
 
@@ -72,4 +81,41 @@ for user in with_github:
 print('Waiting for API response. Press CTRL-C if it takes too long.')
 while wait_more():
     pass
+
+
+def create_filter(num_of_proj):
+    def users_by_projects(user):
+        return user['projects'] == num_of_proj
+    return users_by_projects
+
+def describe_progress(projects):
+    match projects:
+        case 7:
+            return 'all 3 personal projects'
+        case 6:
+            return 'personal projects 2 and 3'
+        case 5:
+            return 'personal projects 1 and 3'
+        case 4:
+            return 'personal project 3'
+        case 3:
+            return 'personal projects 1 and 2'
+        case 2:
+            return 'personal project 2'
+        case 1:
+            return 'personal project 1'
+        case other:
+            raise Exception('Wrong number of projects')
+
+for n in range(7, 0, -1):
+    filter_func = create_filter(n)
+    users = filter(filter_func, with_github)
+    if len(users) > 0:
+        print(f'There are {len(users)} users, who have completed {describe_progress(n)}')
+        for user in users:
+            name = user['name']
+            github = 'https://github.com/' + user['github']
+            print(f'User: {name}    GitHub: {github}')
+
+    
 
